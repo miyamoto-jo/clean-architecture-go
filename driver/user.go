@@ -7,18 +7,20 @@ import (
 	"github.com/miyamoto-jo/clean-architecture-go/adapter/controller"
 	"github.com/miyamoto-jo/clean-architecture-go/adapter/gateway"
 	"github.com/miyamoto-jo/clean-architecture-go/adapter/presenter"
-	"github.com/miyamoto-jo/clean-architecture-go/usecase/interactor"
+	"github.com/miyamoto-jo/clean-architecture-go/usecase"
 )
 
 func Serve(addr string) {
-	user := controller.User{
-		InputFactory:  interactor.NewUserInputPort,
-		OutputFactory: presenter.NewUserOutputPort,
-		RepoFactory:   gateway.NewMockUserRepository,
-		// RepoFactory: gateway.NewSQLUserRepository, repositoryを差し替えた例
+	userController := controller.UserController{
+		InputFactory:  usecase.NewUserInteractor,
+		OutputFactory: presenter.NewUserPlanTextOutput,
+		// OutputFactory: presenter.NewUserJsonTextOutput ← 出力をjsonに変更した例
+		RepoFactory: gateway.NewMockUserRepository,
+		// RepoFactory: gateway.NewSQLUserRepository, ← epositoryをsqlに変更した例
 	}
 
-	http.HandleFunc("/user/", user.GetUserController)
+	http.HandleFunc("/useradd/", userController.AddUser)
+	http.HandleFunc("/user/", userController.GetUser)
 	err := http.ListenAndServe(addr, nil)
 	if err != nil {
 		log.Fatalf("Listen and serve failed. %+v", err)
